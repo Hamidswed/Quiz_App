@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="quiz-header">
+            <h1><i class="fas fa-brain"></i> Knowledge Challenge</h1>
+            <p class="subtitle">Test your knowledge across multiple topics</p>
+        </header>
+
+        <div class="quiz-container" id="quiz-container">
+            <!-- Welcome Screen -->
+            <div class="screen welcome-screen" id="welcome-screen">
+                <div class="welcome-content">
+                    <div class="welcome-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h2>Ready for the Challenge?</h2>
+                    <p>Test your knowledge with this interactive quiz featuring multiple-choice questions, timer challenges, and instant feedback.</p>
+                    
+                    <div class="quiz-stats">
+                        <div class="stat">
+                            <i class="fas fa-question-circle"></i>
+                            <span>10 Questions</span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-clock"></i>
+                            <span>15s per question</span>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-star"></i>
+                            <span>Score tracking</span>
+                        </div>
+                    </div>
+
+                    <div class="category-selector">
+                        <h3>Select Topics:</h3>
+                        <div class="categories">
+                            <label class="category-option">
+                                <input type="checkbox" name="category" value="science" checked>
+                                <span><i class="fas fa-flask"></i> Science</span>
+                            </label>
+                            <label class="category-option">
+                                <input type="checkbox" name="category" value="history" checked>
+                                <span><i class="fas fa-landmark"></i> History</span>
+                            </label>
+                            <label class="category-option">
+                                <input type="checkbox" name="category" value="technology" checked>
+                                <span><i class="fas fa-laptop-code"></i> Technology</span>
+                            </label>
+                            <label class="category-option">
+                                <input type="checkbox" name="category" value="geography" checked>
+                                <span><i class="fas fa-globe-americas"></i> Geography</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="btn-start" id="start-btn">
+                        <i class="fas fa-play"></i> Start Quiz
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div class="screen quiz-screen" id="quiz-screen" style="display: none;">
+                <div class="quiz-info">
+                    <div class="score-display">
+                        <i class="fas fa-trophy"></i>
+                        <span>Score: <span id="current-score">0</span></span>
+                    </div>
+                    
+                    <div class="timer-container">
+                        <div class="timer-circle">
+                            <svg width="60" height="60" viewBox="0 0 60 60">
+                                <circle class="timer-background" cx="30" cy="30" r="27"></circle>
+                                <circle class="timer-progress" cx="30" cy="30" r="27" 
+                                        stroke-dasharray="169.65" stroke-dashoffset="0"></circle>
+                            </svg>
+                            <div class="timer-text" id="timer">15</div>
+                        </div>
+                        <div class="timer-label">Time Remaining</div>
+                    </div>
+
+                    <div class="progress-display">
+                        <i class="fas fa-list-ol"></i>
+                        <span>Question: <span id="current-question">1</span>/<span id="total-questions">10</span></span>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 10%;"></div>
+                </div>
+
+                <div class="question-container">
+                    <div class="question-number">Question <span id="question-number">1</span></div>
+                    <h2 class="question-text" id="question-text">Loading question...</h2>
+                    <div class="question-category" id="question-category">
+                        <i class="fas fa-tag"></i> <span>Category</span>
+                    </div>
+                </div>
+
+                <div class="options-container" id="options-container">
+                    <!-- Options will be dynamically added here -->
+                </div>
+
+                <div class="feedback-container" id="feedback-container" style="display: none;">
+                    <div class="feedback correct" id="correct-feedback">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Correct! Well done.</span>
+                    </div>
+                    <div class="feedback incorrect" id="incorrect-feedback">
+                        <i class="fas fa-times-circle"></i>
+                        <span>Incorrect. The right answer is: <span id="correct-answer-text"></span></span>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button class="btn-nav" id="prev-btn" disabled>
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button class="btn-nav" id="next-btn">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn-nav btn-submit" id="submit-btn" style="display: none;">
+                        <i class="fas fa-paper-plane"></i> Submit Quiz
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div class="screen results-screen" id="results-screen" style="display: none;">
+                <div class="results-content">
+                    <div class="results-icon">
+                        <div class="icon-container">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                    </div>
+                    
+                    <h2>Quiz Completed!</h2>
+                    <p class="results-subtitle">Here's how you performed</p>
+                    
+                    <div class="score-card">
+                        <div class="score-circle">
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle class="score-background" cx="60" cy="60" r="54"></circle>
+                                <circle class="score-progress" cx="60" cy="60" r="54" 
+                                        stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                            </svg>
+                            <div class="score-percentage" id="score-percentage">0%</div>
+                        </div>
+                        
+                        <div class="score-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Correct Answers</span>
+                                <span class="detail-value" id="correct-answers">0</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Total Questions</span>
+                                <span class="detail-value" id="total-answers">10</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Time Taken</span>
+                                <span class="detail-value" id="time-taken">0s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="performance-message" id="performance-message">
+                        <i class="fas fa-comment"></i>
+                        <span>Keep practicing to improve your score!</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-action" id="review-btn">
+                            <i class="fas fa-redo"></i> Review Answers
+                        </button>
+                        <button class="btn-action btn-primary" id="restart-btn">
+                            <i class="fas fa-sync-alt"></i> Try Again
+                        </button>
+                        <button class="btn-action" id="share-btn">
+                            <i class="fas fa-share-alt"></i> Share Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="quiz-footer">
+            <p>Interactive Quiz App • Built with HTML, CSS & JavaScript</p>
+            <p class="footer-note">Timer: 15 seconds per question • Instant feedback • Score tracking</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
