@@ -168,6 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedCategories = ["science", "history", "technology", "geography"];
   let filteredQuestions = [...quizQuestions];
   let isAnswerLocked = false; // Track if answer selection is locked for current question
+  let isReviewMode = false; // Track if we're in review mode
 
   // Initialize the application
   function init() {
@@ -242,6 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
     selectedAnswers.fill(null);
     totalTimeTaken = 0;
     currentScoreDisplay.textContent = "0";
+    isReviewMode = false; // Ensure not in review mode when starting new quiz
 
     if (filteredQuestions.length === 0) {
       alert("Please select at least one category!");
@@ -334,18 +336,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const progressPercentage = ((index + 1) / filteredQuestions.length) * 100;
     progressFill.style.width = `${progressPercentage}%`;
 
-    // Reset timer
-    resetTimer();
+    // Reset timer only if not in review mode
+    if (!isReviewMode) {
+      resetTimer();
+    } else {
+      // In review mode, keep timer at 0
+      timeRemaining = 0;
+      updateTimerDisplay();
+    }
 
-    // Show feedback if answer was already selected or in review mode
+    // Show feedback if answer was already selected
     if (selectedAnswers[index] !== null) {
       showAnswerFeedback(index);
-    } else {
+    } else if (isReviewMode) {
       // In review mode, show correct answer even if no answer was selected
-      // Check if we're in review mode by checking if timer is stopped and answer is locked
-      if (isAnswerLocked && timeRemaining <= 0) {
-        showTimeUpFeedback(index);
-      }
+      showTimeUpFeedback(index);
     }
   }
 
@@ -532,14 +537,20 @@ document.addEventListener("DOMContentLoaded", function () {
   function showPreviousQuestion() {
     if (currentQuestionIndex > 0) {
       loadQuestion(currentQuestionIndex - 1);
-      startTimer();
+      // Only start timer if not in review mode
+      if (!isReviewMode) {
+        startTimer();
+      }
     }
   }
 
   function showNextQuestion() {
     if (currentQuestionIndex < filteredQuestions.length - 1) {
       loadQuestion(currentQuestionIndex + 1);
-      startTimer();
+      // Only start timer if not in review mode
+      if (!isReviewMode) {
+        startTimer();
+      }
     } else {
       submitQuiz();
     }
@@ -602,6 +613,7 @@ document.addEventListener("DOMContentLoaded", function () {
     resultsScreen.style.display = "none";
     welcomeScreen.style.display = "block";
     clearInterval(timerInterval);
+    isReviewMode = false; // Exit review mode
   }
 
   // Review answers
@@ -609,6 +621,18 @@ document.addEventListener("DOMContentLoaded", function () {
     resultsScreen.style.display = "none";
     quizScreen.style.display = "block";
     currentQuestionIndex = 0;
+
+    // Set review mode
+    isReviewMode = true;
+
+    // Stop any running timer
+    clearInterval(timerInterval);
+
+    // Set timer to 0 and update display
+    timeRemaining = 0;
+    updateTimerDisplay();
+
+    // Load the first question
     loadQuestion(currentQuestionIndex);
 
     // Disable answer selection in review mode
