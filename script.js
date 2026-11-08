@@ -264,6 +264,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reset answer lock for new question
     isAnswerLocked = false;
 
+    // Reset feedback text to default for new question
+    const incorrectFeedbackSpan = document.querySelector(
+      "#incorrect-feedback span",
+    );
+    if (incorrectFeedbackSpan) {
+      incorrectFeedbackSpan.innerHTML =
+        '<i class="fas fa-times-circle"></i> Incorrect. The right answer is: <span id="correct-answer-text"></span>';
+    }
+
     // Update question display
     questionText.textContent = question.question;
     questionNumber.textContent = index + 1;
@@ -328,9 +337,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reset timer
     resetTimer();
 
-    // Show feedback if answer was already selected
+    // Show feedback if answer was already selected or in review mode
     if (selectedAnswers[index] !== null) {
       showAnswerFeedback(index);
+    } else {
+      // In review mode, show correct answer even if no answer was selected
+      // Check if we're in review mode by checking if timer is stopped and answer is locked
+      if (isAnswerLocked && timeRemaining <= 0) {
+        showTimeUpFeedback(index);
+      }
     }
   }
 
@@ -408,6 +423,35 @@ document.addEventListener("DOMContentLoaded", function () {
     feedbackContainer.style.display = "block";
   }
 
+  // Show time up feedback (when user doesn't select any answer)
+  function showTimeUpFeedback(questionIndex) {
+    const question = filteredQuestions[questionIndex];
+    const options = document.querySelectorAll(".option");
+
+    // Highlight only the correct answer (no incorrect highlighting)
+    question.options.forEach((option, index) => {
+      if (option.correct) {
+        options[index].classList.add("correct");
+      }
+    });
+
+    // Show time up message - replace the entire text
+    correctFeedback.style.display = "none";
+    incorrectFeedback.style.display = "flex";
+
+    // Change the entire text of incorrect feedback
+    const incorrectFeedbackSpan = document.querySelector(
+      "#incorrect-feedback span",
+    );
+    incorrectFeedbackSpan.innerHTML =
+      '<i class="fas fa-clock"></i> Time\'s up! No answer selected.';
+
+    // Also update the correct answer text (though it won't be shown in this format)
+    correctAnswerText.textContent = "";
+
+    feedbackContainer.style.display = "block";
+  }
+
   // Timer functions
   function startTimer() {
     resetTimer();
@@ -459,20 +503,26 @@ document.addEventListener("DOMContentLoaded", function () {
   function autoSelectAnswer() {
     if (selectedAnswers[currentQuestionIndex] !== null) return;
 
-    // Select a random answer without giving points
-    const randomIndex = Math.floor(Math.random() * 4);
+    // When time is up and no answer selected:
+    // 1. Don't select any option
+    // 2. Don't store any answer in selectedAnswers
+    // 3. Just show the correct answer
+
     const options = document.querySelectorAll(".option");
     const question = filteredQuestions[currentQuestionIndex];
 
-    // Mark selected option
-    options.forEach((option) => option.classList.remove("selected"));
-    options[randomIndex].classList.add("selected");
+    // Don't mark any option as selected
+    // Just show which option is correct
 
-    // Store the selected answer (but don't give points)
-    selectedAnswers[currentQuestionIndex] = randomIndex;
+    // Find and highlight the correct answer
+    question.options.forEach((option, index) => {
+      if (option.correct) {
+        options[index].classList.add("correct");
+      }
+    });
 
-    // Show feedback
-    showAnswerFeedback(currentQuestionIndex);
+    // Show feedback that time is up
+    showTimeUpFeedback(currentQuestionIndex);
 
     // Enable next button
     nextBtn.disabled = false;
