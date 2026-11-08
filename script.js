@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let timerInterval;
   let selectedCategories = ["science", "history", "technology", "geography"];
   let filteredQuestions = [...quizQuestions];
+  let isAnswerLocked = false; // Track if answer selection is locked for current question
 
   // Initialize the application
   function init() {
@@ -260,6 +261,9 @@ document.addEventListener("DOMContentLoaded", function () {
     currentQuestionIndex = index;
     const question = filteredQuestions[index];
 
+    // Reset answer lock for new question
+    isAnswerLocked = false;
+
     // Update question display
     questionText.textContent = question.question;
     questionNumber.textContent = index + 1;
@@ -280,6 +284,8 @@ document.addEventListener("DOMContentLoaded", function () {
     question.options.forEach((option, optionIndex) => {
       const optionElement = document.createElement("div");
       optionElement.className = "option";
+
+      // Check if this option was previously selected
       if (selectedAnswers[index] === optionIndex) {
         optionElement.classList.add("selected");
       }
@@ -289,7 +295,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="option-text">${option.text}</div>
             `;
 
-      optionElement.addEventListener("click", () => selectAnswer(optionIndex));
+      // Only add click event if answer is not locked and no answer selected yet
+      if (!isAnswerLocked && selectedAnswers[index] === null) {
+        optionElement.addEventListener("click", () =>
+          selectAnswer(optionIndex),
+        );
+      } else {
+        optionElement.style.cursor = "default";
+        optionElement.style.pointerEvents = "none";
+      }
+
       optionsContainer.appendChild(optionElement);
     });
 
@@ -321,13 +336,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Select an answer
   function selectAnswer(optionIndex) {
-    // Clear any existing selected option
-    const options = document.querySelectorAll(".option");
-    options.forEach((option) => option.classList.remove("selected"));
+    // Check if answer is already selected or time is up
+    if (isAnswerLocked || selectedAnswers[currentQuestionIndex] !== null) {
+      return; // Don't allow changing answer
+    }
 
     // Mark selected option
+    const options = document.querySelectorAll(".option");
+    options.forEach((option) => option.classList.remove("selected"));
     options[optionIndex].classList.add("selected");
+
+    // Store the selected answer
     selectedAnswers[currentQuestionIndex] = optionIndex;
+
+    // Lock answer selection
+    isAnswerLocked = true;
 
     // Stop timer and calculate time bonus
     clearInterval(timerInterval);
@@ -409,6 +432,16 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else {
       clearInterval(timerInterval);
+      // Lock answer selection when time is up
+      isAnswerLocked = true;
+
+      // Disable all options
+      const options = document.querySelectorAll(".option");
+      options.forEach((option) => {
+        option.style.cursor = "default";
+        option.style.pointerEvents = "none";
+      });
+
       // Auto-select an answer if none selected
       if (selectedAnswers[currentQuestionIndex] === null) {
         autoSelectAnswer();
@@ -426,9 +459,23 @@ document.addEventListener("DOMContentLoaded", function () {
   function autoSelectAnswer() {
     if (selectedAnswers[currentQuestionIndex] !== null) return;
 
-    // Select a random answer
+    // Select a random answer without giving points
     const randomIndex = Math.floor(Math.random() * 4);
-    selectAnswer(randomIndex);
+    const options = document.querySelectorAll(".option");
+    const question = filteredQuestions[currentQuestionIndex];
+
+    // Mark selected option
+    options.forEach((option) => option.classList.remove("selected"));
+    options[randomIndex].classList.add("selected");
+
+    // Store the selected answer (but don't give points)
+    selectedAnswers[currentQuestionIndex] = randomIndex;
+
+    // Show feedback
+    showAnswerFeedback(currentQuestionIndex);
+
+    // Enable next button
+    nextBtn.disabled = false;
   }
 
   // Navigation functions
